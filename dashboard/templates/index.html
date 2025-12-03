@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Extractor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>AI Document Extractor</h1>
+            </div>
+            <p class="subtitle">Extract structured data from PDFs using Gemini AI</p>
+        </header>
+
+        <main>
+            <div class="card input-section">
+                <div class="form-group">
+                    <label for="api-key">Gemini API Key</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="api-key" placeholder="Enter your API Key" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="upload-area" id="drop-zone">
+                    <input type="file" id="file-input" accept=".pdf" hidden>
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Drag & Drop PDF here</h3>
+                        <p>or <span class="browse-btn">browse files</span></p>
+                        <p class="file-name" id="file-name"></p>
+                    </div>
+                </div>
+
+                <button id="process-btn" class="btn primary-btn" disabled>
+                    <span class="btn-text">Process Document</span>
+                    <span class="loader"></span>
+                </button>
+            </div>
+
+            <div class="card result-section hidden" id="result-section">
+                <div class="result-header">
+                    <h2>Extraction Results</h2>
+                    <a href="#" id="download-btn" class="btn secondary-btn">
+                        <i class="fas fa-download"></i> Download Excel
+                    </a>
+                </div>
+                
+                <div class="table-container">
+                    <table id="result-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Key</th>
+                                <th>Value</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

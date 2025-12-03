@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables and secrets
+api key.txt
+.env
+
+# Dashboard uploads and outputs
+dashboard/uploads/
+dashboard/outputs/
+*.xlsx
+
+# IDEs
+.vscode/
+.idea/
+
+# System
+Thumbs.db
+Desktop.ini

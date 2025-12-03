@@ -323,6 +323,8 @@ IMPORTANT INSTRUCTIONS:
 2. Use EXACT original wording in the "value" field
 3. Create separate entries for EACH piece of information
 4. Keep comments concise - only add when providing useful context
+   - Do NOT repeat the same comment for multiple fields.
+   - If a sentence applies to multiple fields, include it ONLY for the first field.
 
 Example output format:
 [
@@ -334,10 +336,7 @@ Example output format:
 ]
 
 TEXT TO EXTRACT:
-{text}
-
-Return ONLY the JSON array:"""
-        
+{text}"""
         max_retries = 3
         for attempt in range(max_retries):
             try:
@@ -353,11 +352,21 @@ Return ONLY the JSON array:"""
                 
                 json_data = self._extract_json(response_text)
                 
-                if json_data and len(json_data) > 0:
-                    print(f"✅ Parsed {len(json_data)} items")
-                    for idx, item in enumerate(json_data, 1):
-                        item['#'] = idx
-                    return json_data
+                # Normalize data to ensure keys exist
+                valid_data = []
+                for i, item in enumerate(json_data, 1):
+                    if isinstance(item, dict):
+                        norm_item = {
+                            "key": str(item.get("key", item.get("Key", ""))),
+                            "value": str(item.get("value", item.get("Value", ""))),
+                            "comments": str(item.get("comments", item.get("Comments", ""))),
+                            "#": i
+                        }
+                        valid_data.append(norm_item)
+                
+                if valid_data and len(valid_data) > 0:
+                    print(f"✅ Parsed {len(valid_data)} items")
+                    return valid_data
                 
             except Exception as e:
                 print(f"⚠️  Attempt {attempt + 1} failed: {str(e)}")
@@ -373,20 +382,18 @@ Return ONLY the JSON array:"""
         
         json_match = re.search(r'\[.*\]', text, re.DOTALL)
         if json_match:
-            data = json.loads(json_match.group(0))
-            if isinstance(data, list):
-                valid_data = []
-                for item in data:
-                    if isinstance(item, dict):
-                        cleaned = {
-                            'key': str(item.get('key', item.get('Key', ''))),
-                            'value': str(item.get('value', item.get('Value', ''))),
-                            'comments': str(item.get('comments', item.get('Comments', item.get('comment', ''))))
-                        }
-                        if cleaned['key'] or cleaned['value']:
-                            valid_data.append(cleaned)
-                return valid_data
-        raise Exception("No valid JSON found")
+            json_str = json_match.group(0)
+            try:
+                return json.loads(json_str)
+            except json.JSONDecodeError as e:
+                if "Extra data" in e.msg:
+                    try:
+                        return json.loads(json_str[:e.pos])
+                    except:
+                        pass
+                print(f"JSON Parse Error: {e}")
+                return []
+        return []
 
 # ------------------------------------------------------------
 # Excel Generator (same)
@@ -404,6 +411,18 @@ class ExcelGenerator:
         df = df[columns]
         print(f"📊 Creating Excel with {len(df)} rows")
         
+        # Try to find a writable filename
+        base_name = output_filename
+        counter = 1
+        while True:
+            try:
+                with open(output_filename, "a"): pass 
+                break
+            except PermissionError:
+                name, ext = os.path.splitext(base_name)
+                output_filename = f"{name}_{counter}{ext}"
+                counter += 1
+
         df.to_excel(output_filename, index=False, sheet_name='Extracted Data')
         self._apply_formatting(output_filename)
         print(f"✅ Excel created: {output_filename}")
@@ -439,7 +458,7 @@ class ExcelGenerator:
 def main():
     print("============================================")
     print("AI DOCUMENT EXTRACTION SYSTEM - LOCAL MODE")
-    print("   ✓ Groups related fields into single rows")
+    print("   - Groups related fields into single rows")
     print("============================================")
 
     api_key = input("\nEnter your Gemini API Key: ").strip()

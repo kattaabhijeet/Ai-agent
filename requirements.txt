@@ -1,5 +1,0 @@
-flask
-google-generativeai
-pdfplumber
-pandas
-openpyxl
